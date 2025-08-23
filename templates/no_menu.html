@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}No Menu Available - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="no-menu-container">
+    <div class="no-menu-content">
+        <div class="no-menu-icon">
+            <i class="fas fa-calendar-times"></i>
+        </div>
+        
+        <h2>No Menu Available</h2>
+        <p class="company-name">{{ company.name }}</p>
+        <p class="date-info">{{ date }}</p>
+        
+        <div class="message">
+            <p>Sorry, there's no menu available for today. Please check back later or contact your administrator.</p>
+        </div>
+        
+        <div class="actions">
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+            
+            <a href="/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Companies
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

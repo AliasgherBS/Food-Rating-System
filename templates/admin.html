@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Food Deck Rating{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+{% endblock %}
+
+{% block header_actions %}
+<div class="header-actions">
+    <a href="/" class="btn btn-outline">
+        <i class="fas fa-home"></i>
+        Back to Home
+    </a>
+    <form method="post" action="/admin/logout" style="display: inline;">
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Navigation Tabs -->
+    <div class="admin-nav">
+        <button class="nav-tab active" onclick="showTab('companies')">
+            <i class="fas fa-building"></i>
+            Companies
+        </button>
+        <button class="nav-tab" onclick="showTab('menus')">
+            <i class="fas fa-utensils"></i>
+            Menus
+        </button>
+        <button class="nav-tab" onclick="showTab('analytics')">
+            <i class="fas fa-chart-bar"></i>
+            Analytics
+        </button>
+    </div>
+
+    <!-- Companies Tab -->
+    <div class="tab-content active" id="companies-tab">
+        <div class="section-header">
+            <h2><i class="fas fa-building"></i> Company Management</h2>
+            <button class="btn btn-primary" onclick="showAddCompanyModal()">
+                <i class="fas fa-plus"></i>
+                Add Company
+            </button>
+        </div>
+        
+        <div class="companies-list" id="companies-list">
+            <div class="loading" id="companies-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                Loading companies...
+            </div>
+        </div>
+    </div>
+
+    <!-- Menus Tab -->
+    <div class="tab-content" id="menus-tab">
+        <div class="section-header">
+            <h2><i class="fas fa-utensils"></i> Menu Management</h2>
+            <div class="menu-controls">
+                <select id="menu-company-select" class="form-select" onchange="loadCompanyMenus()">
+                    <option value="">Select Company</option>
+                </select>
+                <button class="btn btn-primary" onclick="showAddMenuModal()" id="add-menu-btn" disabled>
+                    <i class="fas fa-plus"></i>
+                    Add Menu
+                </button>
+            </div>
+        </div>
+        
+        <div class="menus-list" id="menus-list">
+            <div class="empty-state">
+                <i class="fas fa-utensils"></i>
+                <p>Select a company to view and manage menus</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-content" id="analytics-tab">
+        <div class="section-header">
+            <h2><i class="fas fa-chart-bar"></i> Analytics Dashboard</h2>
+            <div class="analytics-controls">
+                <select id="analytics-company-select" class="form-select" onchange="loadAnalytics()">
+                    <option value="">Select Company</option>
+                </select>
+                <select id="analytics-period-select" class="form-select" onchange="loadAnalytics()">
+                    <option value="daily">Today</option>
+                    <option value="weekly">Last 7 Days</option>
+                    <option value="monthly">Last 30 Days</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="analytics-content" id="analytics-content">
+            <div class="empty-state">
+                <i class="fas fa-chart-bar"></i>
+                <p>Select a company to view analytics</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Company Modal -->
+<div class="modal" id="add-company-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Company</h3>
+            <button class="modal-close" onclick="closeModal('add-company-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="add-company-form" onsubmit="addCompany(event)">
+            <div class="form-group">
+                <label for="company-name">Company Name</label>
+                <input type="text" id="company-name" required>
+            </div>
+            <div class="form-group">
+                <label for="company-type">Menu Type</label>
+                <select id="company-type" required>
+                    <option value="">Select Type</option>
+                    <option value="static">Static Menu (Fixed daily items)</option>
+                    <option value="cafeteria">Cafeteria (Multiple options)</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('add-company-modal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add Company
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Menu Modal -->
+<div class="modal" id="add-menu-modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>Add Menu</h3>
+            <button class="modal-close" onclick="closeModal('add-menu-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="add-menu-form" onsubmit="addMenu(event)">
+            <div class="form-group">
+                <label for="menu-date">Date</label>
+                <input type="date" id="menu-date" required>
+            </div>
+            <div class="form-group">
+                <label>Menu Items</label>
+                <div class="menu-items-header">
+                    <span>Add menu items for this date</span>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="addMenuItem()">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                </div>
+                <div class="menu-items-container" id="menu-items-container">
+                    <div class="menu-item-input">
+                        <input type="text" placeholder="Item name" required>
+                        <input type="text" placeholder="Description (optional)">
+                        <button type="button" class="btn-remove" onclick="removeMenuItem(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="add-item-actions">
+                    <button type="button" class="btn btn-outline btn-add-more" onclick="addMenuItem()">
+                        <i class="fas fa-plus"></i>
+                        Add Another Item
+                    </button>
+                    <span class="item-count">1 item</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('add-menu-modal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add Menu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Menu Modal -->
+<div class="modal" id="edit-menu-modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>Edit Menu</h3>
+            <button class="modal-close" onclick="closeModal('edit-menu-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="edit-menu-form" onsubmit="updateMenu(event)">
+            <input type="hidden" id="edit-menu-id">
+            <div class="form-group">
+                <label for="edit-menu-date">Date</label>
+                <input type="date" id="edit-menu-date" required readonly>
+            </div>
+                         <div class="form-group">
+                 <label>Menu Items</label>
+                 <div class="menu-items-header">
+                     <span>Edit menu items</span>
+                     <button type="button" class="btn btn-sm btn-outline" onclick="addEditMenuItem()">
+                         <i class="fas fa-plus"></i>
+                         Add Item
+                     </button>
+                 </div>
+                 <div class="menu-items-container" id="edit-menu-items-container">
+                     <!-- Items will be populated dynamically -->
+                 </div>
+                 <div class="add-item-actions">
+                     <button type="button" class="btn btn-outline btn-add-more" onclick="addEditMenuItem()">
+                         <i class="fas fa-plus"></i>
+                         Add Another Item
+                     </button>
+                     <span class="edit-item-count">0 items</span>
+                 </div>
+             </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('edit-menu-modal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Items to Menu Modal -->
+<div class="modal" id="add-items-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Items to Menu</h3>
+            <button class="modal-close" onclick="closeModal('add-items-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="add-items-form" onsubmit="addItemsToMenu(event)">
+            <input type="hidden" id="target-menu-id">
+            <div class="form-group">
+                <label>New Menu Items</label>
+                <div class="menu-items-container" id="add-items-container">
+                    <div class="menu-item-input">
+                        <input type="text" placeholder="Item name" required>
+                        <input type="text" placeholder="Description (optional)">
+                        <button type="button" class="btn-remove" onclick="removeMenuItem(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline" onclick="addItemToContainer('add-items-container')">
+                    <i class="fas fa-plus"></i>
+                    Add Another Item
+                </button>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('add-items-modal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Add Items
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', path='/js/admin.js') }}"></script>
+{% endblock %} 
