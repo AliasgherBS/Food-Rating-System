@@ -9,7 +9,7 @@ let selectedCompanyId = null;
 document.addEventListener('DOMContentLoaded', async function() {
     loadCompanies();
     await loadCompanySelects();
-                 mnjkuhiiuyiujh   88
+    
     // Set today's date as default for menu creation
     const today = new Date().toISOString().split('T')[0];
     const menuDateInput = document.getElementById('menu-date');
