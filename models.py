@@ -38,7 +38,7 @@ class Company(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: str
     type: CompanyType
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
     
     model_config = {
         "populate_by_name": True,
@@ -74,7 +74,7 @@ class Menu(BaseModel):
     company_id: str
     date: str  # YYYY-MM-DD format
     items: List[MenuItem]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
     
     model_config = {
         "populate_by_name": True,
@@ -100,7 +100,7 @@ class Rating(BaseModel):
     item_id: str
     item_name: str
     score: int  # 0-5 scale
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=datetime.now)
     submission_id: str
     
     model_config = {
@@ -114,7 +114,7 @@ class Submission(BaseModel):
     company_id: str
     date: str  # YYYY-MM-DD format
     employee_counter: int
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=datetime.now)
     ratings_count: int = 0
     
     model_config = {

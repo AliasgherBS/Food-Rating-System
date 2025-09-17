@@ -23,7 +23,7 @@ from database import (
     ping_database
 )
 
-app = FastAPI(title="Food Deck Rating System", version="1.0.0")
+app = FastAPI(title="Alwaan Ratings", version="1.0.0")
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -64,14 +64,16 @@ async def startup_event():
 # Health Check
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
+    return {"status": "healthy", "timestamp": datetime.now()}
+
+
 
 # Company Management Endpoints
 @app.post("/api/companies")
 async def create_company(company: CompanyCreate, admin: str = Depends(verify_admin_session)):
     """Create a new company"""
     company_dict = company.model_dump()
-    company_dict["created_at"] = datetime.utcnow()
+    company_dict["created_at"] = datetime.now()
     
     result = await companies_collection.insert_one(company_dict)
     created_company = await companies_collection.find_one({"_id": result.inserted_id})
@@ -181,20 +183,27 @@ async def create_menu(company_id: str, menu_create: MenuCreate, replace: bool = 
     })
     
     menu_dict = menu_create.model_dump()
-    menu_dict["created_at"] = datetime.utcnow()
+    menu_dict["created_at"] = datetime.now()
     
     # Generate ObjectIds for menu items
     for item in menu_dict.get("items", []):
         if "_id" not in item:
             item["_id"] = ObjectId()
     
+
+    
     if existing_menu:
         if replace:
             # Replace the entire menu (used by "Add Menu" functionality)
-            result = await menus_collection.update_one(
-                {"_id": existing_menu["_id"]},
-                {"$set": menu_dict}
-            )
+            # First delete all associated ratings for this menu
+            await ratings_collection.delete_many({"menu_id": str(existing_menu["_id"])})
+            
+            # Delete the existing menu completely
+            await menus_collection.delete_one({"_id": existing_menu["_id"]})
+            
+            # Create a new menu with the same date and company_id
+            menu_dict["_id"] = existing_menu["_id"]  # Keep the same ID for consistency
+            result = await menus_collection.insert_one(menu_dict)
         else:
             # Add items to existing menu (used by "Add Items" functionality)
             new_items = menu_dict.get("items", [])
@@ -203,7 +212,13 @@ async def create_menu(company_id: str, menu_create: MenuCreate, replace: bool = 
                 {"$push": {"items": {"$each": new_items}}}
             )
         
-        updated_menu = await menus_collection.find_one({"_id": existing_menu["_id"]})
+        if replace:
+            # For replacement, get the newly created menu
+            updated_menu = await menus_collection.find_one({"_id": existing_menu["_id"]})
+        else:
+            # For adding items, get the updated menu
+            updated_menu = await menus_collection.find_one({"_id": existing_menu["_id"]})
+        
         # Convert ObjectId to string manually
         updated_menu["id"] = str(updated_menu.pop("_id"))
         # Convert item IDs too
@@ -426,7 +441,7 @@ async def submit_ratings(rating_submission: RatingSubmission):
         raise HTTPException(status_code=404, detail="Menu not found")
     
     # Create submission record
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     
     # Get next employee counter for today
     last_submission = await submissions_collection.find_one(
@@ -441,7 +456,7 @@ async def submit_ratings(rating_submission: RatingSubmission):
         "company_id": rating_submission.company_id,
         "date": today,
         "employee_counter": next_counter,
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(),
         "ratings_count": len(rating_submission.ratings)
     }
     
@@ -457,7 +472,7 @@ async def submit_ratings(rating_submission: RatingSubmission):
             "item_id": rating_data["item_id"],
             "item_name": rating_data["item_name"],
             "score": rating_data["score"],
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(),
             "submission_id": submission_id
         }
         ratings_to_insert.append(rating_dict)
@@ -487,7 +502,7 @@ async def get_analytics(
     
     # Set default date range if not provided
     if not end_date:
-        end_date = datetime.utcnow().strftime("%Y-%m-%d")
+        end_date = datetime.now().strftime("%Y-%m-%d")
     
     if not start_date:
         if period == "daily":
@@ -639,7 +654,7 @@ async def kiosk_interface(request: Request, company_id: str):
         raise HTTPException(status_code=404, detail="Company not found")
     
     # Get today's menu
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     menu = await menus_collection.find_one({
         "company_id": company_id,
         "date": today
@@ -671,9 +686,8 @@ async def kiosk_interface(request: Request, company_id: str):
         if "_id" in item:
             item["id"] = str(item.pop("_id"))
     
-    # Create JSON-safe menu items for JavaScript
-    import json
-    menu_items_json = json.dumps(menu.get("items", []))
+    # Pass items directly to template
+    menu_items = menu.get("items", [])
     
     # Pass items directly to avoid method confusion
     return templates.TemplateResponse("kiosk_simple.html", {
@@ -686,7 +700,7 @@ async def kiosk_interface(request: Request, company_id: str):
         "menu": {
             "id": menu["id"]
         },
-        "menu_items": menu.get("items", [])
+        "menu_items": menu_items
     })
 
 @app.get("/admin", response_class=HTMLResponse)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ company.name }} - Food Rating</title>
+    <title>{{ company.name }} - Alwaan Ratings</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/kiosk.css') }}">
 </head>
@@ -142,23 +142,17 @@ let ratings = {};
 let selectedItems = new Set();
 
 function toggleItemSelection(checkbox) {
-    console.log('toggleItemSelection called, checked:', checkbox.checked);
-    
     const menuItem = checkbox.closest('.menu-item');
     if (!menuItem) {
-        console.error('Menu item not found for checkbox');
         return;
     }
     
     const itemId = menuItem.dataset.itemId;
     const ratingContainer = menuItem.querySelector('.rating-container');
     
-    console.log('Item ID:', itemId, 'Checkbox checked:', checkbox.checked);
-    
     if (checkbox.checked) {
         selectedItems.add(itemId);
         ratingContainer.classList.remove('hidden');
-        console.log('Item selected, showing rating container');
     } else {
         selectedItems.delete(itemId);
         ratingContainer.classList.add('hidden');
@@ -169,20 +163,14 @@ function toggleItemSelection(checkbox) {
         emojiButtons.forEach(btn => btn.classList.remove('selected'));
         const ratingLabel = ratingContainer.querySelector('.rating-label');
         if (ratingLabel) ratingLabel.textContent = 'Tap to rate';
-        
-        console.log('Item deselected, hiding rating container');
     }
     
-    console.log('Selected items:', Array.from(selectedItems));
     updateProgress();
 }
 
 function setRating(button, rating) {
-    console.log('setRating called with rating:', rating, 'button:', button);
-    
     const menuItem = button.closest('.menu-item');
     if (!menuItem) {
-        console.error('Menu item not found');
         return;
     }
     
@@ -190,16 +178,12 @@ function setRating(button, rating) {
     const itemName = menuItem.dataset.itemName;
     const ratingContainer = menuItem.querySelector('.rating-container');
     
-    console.log('Item ID:', itemId, 'Item Name:', itemName);
-    
     // Update ratings object
     ratings[itemId] = {
         item_id: itemId,
         item_name: itemName,
         score: rating
     };
-    
-    console.log('Updated ratings:', ratings);
     
     // Update UI
     const emojiButtons = ratingContainer.querySelectorAll('.emoji-btn');
@@ -289,7 +273,6 @@ async function submitRatings() {
             throw new Error('Failed to submit ratings');
         }
     } catch (error) {
-        console.error('Error submitting ratings:', error);
         alert('Failed to submit ratings. Please try again.');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Ratings';

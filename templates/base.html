@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Food Deck Rating System{% endblock %}</title>
+    <title>{% block title %}Alwaan Ratings{% endblock %}</title>
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
@@ -21,8 +21,8 @@
         <header class="app-header">
             <div class="header-content">
                 <h1 class="app-title">
-                    <i class="fas fa-utensils"></i>
-                    Food Deck Rating
+                    <img src="{{ url_for('static', path='/logo-white.jpg') }}" alt="Alwaan Foods Logo" class="app-logo">
+                    Alwaan Ratings
                 </h1>
                 {% block header_actions %}{% endblock %}
             </div>
@@ -35,7 +35,7 @@
         
         {% block footer %}
         <footer class="app-footer">
-            <p>&copy; 2024 Food Deck Rating System. Powered by real-time feedback.</p>
+            <p>&copy; 2025 Alwaan Foods. Powered by GraphiSign.</p>
         </footer>
         {% endblock %}
     </div>

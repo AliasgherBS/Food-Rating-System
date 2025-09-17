@@ -9,7 +9,7 @@ let selectedCompanyId = null;
 document.addEventListener('DOMContentLoaded', async function() {
     loadCompanies();
     await loadCompanySelects();
-    
+                 mnjkuhiiuyiujh   88
     // Set today's date as default for menu creation
     const today = new Date().toISOString().split('T')[0];
     const menuDateInput = document.getElementById('menu-date');
@@ -412,14 +412,20 @@ function showAddMenuModal() {
         return;
     }
     
+    // Reset the entire form
     document.getElementById('add-menu-form').reset();
     
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('menu-date').value = today;
     
-    // Reset menu items container
+    // Completely clear and reset menu items container
     const container = document.getElementById('menu-items-container');
+    
+    // Clear any existing content
+    container.innerHTML = '';
+    
+    // Add a fresh single item input
     container.innerHTML = `
         <div class="menu-item-input">
             <input type="text" placeholder="Item name" required>
@@ -432,6 +438,8 @@ function showAddMenuModal() {
     
     // Update item count
     updateItemCount();
+    
+
     
     Modal.show('add-menu-modal');
 }
@@ -486,14 +494,20 @@ async function addMenu(event) {
     Loading.setButtonLoading(submitBtn, true);
     
     try {
-        await Utils.fetchAPI(`/menu/${selectedCompanyId}?replace=true`, {
+        const response = await Utils.fetchAPI(`/menu/${selectedCompanyId}?replace=true`, {
             method: 'POST',
             body: JSON.stringify(menuData)
         });
         
+
+        
         Utils.showToast('Menu added successfully!', 'success');
         Modal.hide('add-menu-modal');
-        loadCompanyMenus();
+        
+        // Clear any cached data and reload
+        setTimeout(() => {
+            loadCompanyMenus();
+        }, 100);
     } catch (error) {
         Utils.showToast(`Failed to add menu: ${error.message}`, 'error');
     } finally {

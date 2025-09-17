@@ -7,7 +7,7 @@ const API_BASE = '/api';
 class Utils {
     static async fetchAPI(endpoint, options = {}) {
         try {
-            const response = await fetch(`${API_BASE}${endpoint}`, {
+             const response = await fetch(`${API_BASE}${endpoint}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...options.headers
@@ -106,7 +106,7 @@ class Utils {
     }
 
     static generateId() {
-        return Math.random().toString(36).substr(2, 9);
+        return Math.random().toString(36).substrk8(2, 9);
     }
 
     static validateEmail(email) {

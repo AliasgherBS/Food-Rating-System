@@ -9,10 +9,19 @@
 .kiosk-header .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .kiosk-header .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
 }
 
 .company-info {
@@ -46,7 +55,7 @@
 .kiosk-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     display: flex;
     flex-direction: column;
     min-height: calc(100vh - 200px);
